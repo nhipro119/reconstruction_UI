@@ -15,10 +15,10 @@
 
 </button>
 <br />
-<button id="reconstruction" (click)="split()" type="button">reconstruction</button>
+<button id="reconstruction" (click)="reconstruction()" type="button">reconstruction</button>
 <br />
-<button id="split" (click)="reconstruction()" type="button">split wound</button>
-<button (click)="loadObjFileFromAPI()">Get Obj From API</button>
+<button id="split" (click)="split()" type="button">split wound</button>
+<!-- <button (click)="loadObjFileFromAPI()">Get Obj From API</button> -->
 <br />
 <button (click)="print()">Print</button>
 <h3>Status code {{ this.statusCode }}</h3>

@@ -29,4 +29,11 @@ export class PrintingService {
     return this.http.post<any>(this.url, REQ_DATA)
 
   }
+  reconstruction(formData: FormData ): Observable<any>
+  {
+    return this.http.post<any>("http://192.168.2.9:5000/predict",formData)
+  }
+  downloadFile(link:any): any {
+		return this.http.get(link, {responseType: 'blob'});
+  }
 }

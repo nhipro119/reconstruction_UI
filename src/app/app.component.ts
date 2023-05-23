@@ -10,7 +10,7 @@ import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader'
 import { MaterialLoader } from 'three';
 import { PrintingService } from './printing.service';
 import { FormBuilder, Validators } from '@angular/forms';
-import { FileService } from './file.service';
+import * as fileSaver from 'file-saver';
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -18,16 +18,14 @@ import { FileService } from './file.service';
 })
 export class AppComponent {
 
-  constructor(private http: HttpClient, private sanitizer: DomSanitizer, private service: PrintingService, public loaderService: LoaderService,private fb: FormBuilder, private fileService: FileService) {
+  constructor(private http: HttpClient, private sanitizer: DomSanitizer, private service: PrintingService, public loaderService: LoaderService) {
 
   }
-  public formGroup = this.fb.group({
-    file: [null, Validators.required]
-  });
-  
-  ngOnInit() {
-    this.loadObjFileFromAPI()
-  }
+
+
+  // ngOnInit() {
+  //   this.loadObjFileFromAPI()
+  // }
   title = 'demoPrintingAPI';
 
   responseData!: Blob;
@@ -36,7 +34,8 @@ export class AppComponent {
   file!: any ;
   fileName: string = "";
   localUrl!: any;
-
+  reconstruct_link!: any;
+  split_link!: any;
   statusCode: any;
   jsonresult!: any;
   public loadObjFile() {
@@ -101,7 +100,7 @@ export class AppComponent {
     console.log('Size');
     console.log(document.getElementsByTagName('canvas')[0])
   }
-  public loadObjFileFromAPI() {
+  public loadObjFileFromAPI(link: any) {
     var start = new Date().getTime();
     //create new file
     while (document.querySelectorAll('canvas').length != 0) {
@@ -131,7 +130,6 @@ export class AppComponent {
     scene.add(keyLight);
 
     var objLoader = new OBJLoader();
-    var link = 'http://34.101.50.122:8000/affc7032-1d65-4044-8933-0d2db70b934c-44afa048-f8a6-11ed-b563-42010ab80002.obj';
     objLoader.load(link, function (object: any) {
       scene.add(object);
     });
@@ -162,21 +160,33 @@ export class AppComponent {
     this.service.print().subscribe(data => this.statusCode = data.code)
   }
   split(){
+    this.loadObjFileFromAPI(this.split_link);
 
   }
   reconstruction(){
     if(this.file){
       const formData = new FormData();
       formData.append("obj",this.file);
-      const upload$ = this.http.post("http://34.101.50.122:5000/predict", formData, {reportProgress: true,
-      observe: 'events'
-  }).subscribe(data =>{this.getresult(data)});
-    }
+      this.service.reconstruction(formData).subscribe(data => this.getresult(data))
 
-  }
-  getresult(resuilt: any)
+    }
+    else{
+      this.statusCode = 10;
+    }
+}
+
+  getresult(data: any)
   {
-    console.log(resuilt);
+    this.reconstruct_link = data.reconstructed_face;
+    this.split_link = data.split_wound;
+    this.service.downloadFile(this.reconstruct_link).subscribe((response: any) => {
+			let blob:any = new Blob([response], { type: 'text/json; charset=utf-8' });
+			const url = window.URL.createObjectURL(blob);
+			//window.open(url);
+			fileSaver.saveAs(blob, 'abc.obj');
+			}), (error: any) => console.log('Error downloading the file'),
+			() => console.info('File downloaded successfully');
+    this.loadObjFileFromAPI(this.reconstruct_link);
   }
 
 

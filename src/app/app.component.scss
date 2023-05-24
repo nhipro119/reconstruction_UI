@@ -1,3 +1,22 @@
 .myObject {
     background-color: antiquewhite;
 }
+p {
+  font-family: Lato;
+}
+
+canvas {
+  outline: none;
+  width: 100%;
+  height: 100%;
+}
+
+div {
+  height: 500px;
+  width: 1000px
+}
+
+.gcode-preview {
+  width: 40vw;
+  margin: auto;
+}

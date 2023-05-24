@@ -2,7 +2,7 @@ import { LoaderService } from './loader.service';
 
 
 import { HttpClient } from '@angular/common/http';
-import { Component } from '@angular/core';
+import { Component,ElementRef, ViewChild } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
@@ -46,6 +46,8 @@ export class AppComponent {
   split_file!:any;
   printer_config!:any;
   extruder_config!:any;
+  private context!: HTMLCanvasElement;
+  @ViewChild('myCanvas', { static: false }) canvas!: ElementRef;
   public loadObjFile() {
     var start = new Date().getTime();
     //create new file
@@ -173,8 +175,8 @@ export class AppComponent {
     {
       let split_name = this.fileName.replace(".obj","_split.obj");
       this.split_file = new File([Response],split_name);
-      this.file = this.split_file;   
-      this.statusCode = split_name; 
+      this.file = this.split_file;
+      this.statusCode = split_name;
     })
 
   }
@@ -206,21 +208,61 @@ export class AppComponent {
 			// fileSaver.saveAs(blob, 'abc.obj');
 			// }), (error: any) => console.log('Error downloading the file'),
 			// () => console.info('File downloaded successfully');
-    
+
     // this.loadObjFile();
     this.loadObjFileFromAPI(this.reconstruct_link);
   }
+
+  config_file(e:any){
+    this.printer_config = e.target.files[0];
+  }
+  get_config(){
+    const input = document.getElementById('config');
+    input?.addEventListener('click', function config_file(event) {
+
+    });
+  }
+  slice()
+  {
+    let fformData: FormData = new FormData();
+    fformData.append("model", this.file);
+    fformData.append("printer_config",this.printer_config);
+    fformData.append("extruder_config", this.extruder_config);
+    this.service.slice_service(fformData).subscribe(data => this.setup_gcode_view(data.data));
+  }
+  setup_gcode_view(url:any){
+    this.context = (this.canvas.nativeElement as HTMLCanvasElement);
+
+    this.preview = new WebGLPreview({
+      canvas: this.context,
+      targetId: 'gcode-preview',
+      topLayerColor: new THREE.Color('lime').getHex(),
+      lastSegmentColor: new THREE.Color('red').getHex(),
+      buildVolume: { x: 450, y: 410, z: 350, r: 100, i: 100, j: 100 },
+      initialCameraPosition: [0, 400, 450]
+    });
+
+    this.preview.render();
+    this.statusCode = url;
+    this.dropped(url);
+  }
   dropped(files: any): any {
     for (const droppedFile of files) {
-      if (droppedFile.fileEntry.isFile && droppedFile.relativePath !== undefined) {
-        const fileEntry = droppedFile.fileEntry as FileSystemFileEntry; // cast droppedFile to FileEntry
-        fileEntry.file(async (file: File) => {
-          const url = window.URL.createObjectURL(file); // createUrl To The FileEntry
-          const linesList = await this.fetchGcode(url); // get List Of Line of the current File
+      // if (droppedFile.fileEntry.isFile && droppedFile.relativePath !== undefined)
+      {
+        // const fileEntry = droppedFile.fileEntry as FileSystemFileEntry; // cast droppedFile to FileEntry
+        // fileEntry.file(async (file: File) =>
+        {
+          // const url = window.URL.createObjectURL(file); // createUrl To The FileEntry
+          const url = "http://34.101.50.122:8010/get-gcode?gcode_file=HUU_6318_6.gcode";
+          const linesList = this.fetchGcode(url); // get List Of Line of the current File
           this.loadPreviewChunked(this.preview, linesList, 50); // Load Preview
-        });
+        };
       }
+
     }
+
+
   }
 
   async fetchGcode(url: any): Promise<any> {
@@ -260,24 +302,6 @@ export class AppComponent {
     clearTimeout(setTimeout(loadProgressive, delay));
     loadProgressive();
   }
-  config_file(e:any){
-    this.printer_config = e.target.files[0];
-  }
-  get_config(){
-    const input = document.getElementById('config');
-    input?.addEventListener('click', function config_file(event) {
-
-    });
-  }
-  slice()
-  {
-    let fformData: FormData = new FormData();
-    fformData.append("model", this.file);
-    fformData.append("printer_config",this.printer_config);
-    fformData.append("extruder_config", this.extruder_config);
-    this.service.slice_service(fformData).subscribe(data => this.statusCode = data.data);
-  }
-
 
 
 }

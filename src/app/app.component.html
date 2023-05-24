@@ -20,7 +20,35 @@
 <button id="split" (click)="split()" type="button">split wound</button>
 <!-- <button (click)="loadObjFileFromAPI()">Get Obj From API</button> -->
 <br />
+<button id="getconfig" (click)="get_config()" type="button">
+  <label for="config" class="lable-icon"> config</label>
+  <input
+    id="config"
+    class=""
+    type="file"
+    (change)="config_file($event)"
+    accept=".def.json"
+    hidden
+  />
+</button>
+<button id="slice" (click)="slice()" type="button">slice</button><br />
+
 <button (click)="print()">Print</button>
 <h3>Status code {{ this.statusCode }}</h3>
 
 <div #myObject class="myObject"></div>
+<div id="gcode-preview">
+  <canvas #myCanvas></canvas>
+</div>
+<!-- <div>
+  <ngx-file-drop (onFileDrop)="dropped($event)">
+    <ng-template
+      ngx-file-drop-content-tmp
+      let-openFileSelector="openFileSelector"
+    >
+      <button type="button" class="btn btn-danger" (click)="openFileSelector()">
+        click me
+      </button>
+    </ng-template>
+  </ngx-file-drop>
+</div> -->

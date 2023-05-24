@@ -31,9 +31,13 @@ export class PrintingService {
   }
   reconstruction(formData: FormData ): Observable<any>
   {
-    return this.http.post<any>("http://192.168.2.9:5000/predict",formData)
+    return this.http.post<any>("http://34.101.50.122:5000/predict",formData)
   }
   downloadFile(link:any): any {
 		return this.http.get(link, {responseType: 'blob'});
+  }
+  slice_service(formData:FormData): Observable<any>
+  {
+    return this.http.post<any>("http://34.101.50.122:8010/slice-gcode",formData)
   }
 }

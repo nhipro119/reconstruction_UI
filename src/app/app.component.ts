@@ -11,6 +11,8 @@ import { MaterialLoader } from 'three';
 import { PrintingService } from './printing.service';
 import { FormBuilder, Validators } from '@angular/forms';
 import * as fileSaver from 'file-saver';
+import { WebGLPreview } from 'gcode-preview';
+// import { FileSystemFileEntry, NgxFileDropEntry } from 'ngx-file-drop';
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -27,7 +29,7 @@ export class AppComponent {
   //   this.loadObjFileFromAPI()
   // }
   title = 'demoPrintingAPI';
-
+  formData!: FormData;
   responseData!: Blob;
   f!: File;
   url!: any;
@@ -38,6 +40,12 @@ export class AppComponent {
   split_link!: any;
   statusCode: any;
   jsonresult!: any;
+  chunkSize = 250;
+  preview: any;
+  reconstruct_file!:any;
+  split_file!:any;
+  printer_config!:any;
+  extruder_config!:any;
   public loadObjFile() {
     var start = new Date().getTime();
     //create new file
@@ -73,7 +81,7 @@ export class AppComponent {
 
     var objLoader = new OBJLoader();
     //read file
-    const fileReader = new FileReader();
+    var fileReader = new FileReader();
     let fileString: string = "";
     fileReader.onloadend = () => {
       var reader = fileReader.result + "";
@@ -161,6 +169,13 @@ export class AppComponent {
   }
   split(){
     this.loadObjFileFromAPI(this.split_link);
+    this.service.downloadFile(this.split_link).subscribe((Response: any) =>
+    {
+      let split_name = this.fileName.replace(".obj","_split.obj");
+      this.split_file = new File([Response],split_name);
+      this.file = this.split_file;   
+      this.statusCode = split_name; 
+    })
 
   }
   reconstruction(){
@@ -180,15 +195,88 @@ export class AppComponent {
     this.reconstruct_link = data.reconstructed_face;
     this.split_link = data.split_wound;
     this.service.downloadFile(this.reconstruct_link).subscribe((response: any) => {
-			let blob:any = new Blob([response], { type: 'text/json; charset=utf-8' });
-			const url = window.URL.createObjectURL(blob);
-			//window.open(url);
-			fileSaver.saveAs(blob, 'abc.obj');
-			}), (error: any) => console.log('Error downloading the file'),
-			() => console.info('File downloaded successfully');
+      // let blobf:Blob = new Blob([response],{type:"aplication/obj"})
+			this.reconstruct_file = new File([response],"abc.obj");
+      this.file = this.reconstruct_file;
+      this.statusCode = this.file.name;
+    }, (error: any) => console.log('Error downloading the file'),
+    () => console.info('File downloaded successfully'));
+			// const url = window.URL.createObjectURL(blob);
+			// //window.open(url);
+			// fileSaver.saveAs(blob, 'abc.obj');
+			// }), (error: any) => console.log('Error downloading the file'),
+			// () => console.info('File downloaded successfully');
+    
+    // this.loadObjFile();
     this.loadObjFileFromAPI(this.reconstruct_link);
   }
+  dropped(files: any): any {
+    for (const droppedFile of files) {
+      if (droppedFile.fileEntry.isFile && droppedFile.relativePath !== undefined) {
+        const fileEntry = droppedFile.fileEntry as FileSystemFileEntry; // cast droppedFile to FileEntry
+        fileEntry.file(async (file: File) => {
+          const url = window.URL.createObjectURL(file); // createUrl To The FileEntry
+          const linesList = await this.fetchGcode(url); // get List Of Line of the current File
+          this.loadPreviewChunked(this.preview, linesList, 50); // Load Preview
+        });
+      }
+    }
+  }
 
+  async fetchGcode(url: any): Promise<any> {
+    const response = await fetch(url);
+
+    if (response.status !== 200) {
+      throw new Error(`status code: ${response.status}`);
+    }
+    const file = await response.text();
+    return file.split('\n');
+  }
+
+
+  loadPreviewChunked(target: any, lines: any, delay: any): any {
+    let c = 0;
+    const id = '__animationTimer__' + Math.random().toString(36).substring(2, 9);
+
+    console.log('id', id);
+    console.log(typeof id);
+    const loadProgressive = () => {
+      const start = c * this.chunkSize;
+      const end = (c + 1) * this.chunkSize;
+      const chunk = lines.slice(start, end);
+      target.processGCode(chunk);
+      c++;
+      if (c * this.chunkSize < lines.length) {
+        // window[id] = setTimeout(loadProgressive, delay);
+        setTimeout(loadProgressive, delay);
+      }
+      else {
+        console.log('this file was complete');
+      }
+    };
+
+
+    // window.clearTimeout(window[id]);
+    clearTimeout(setTimeout(loadProgressive, delay));
+    loadProgressive();
+  }
+  config_file(e:any){
+    this.printer_config = e.target.files[0];
+  }
+  get_config(){
+    const input = document.getElementById('config');
+    input?.addEventListener('click', function config_file(event) {
+
+    });
+  }
+  slice()
+  {
+    let fformData: FormData = new FormData();
+    fformData.append("model", this.file);
+    fformData.append("printer_config",this.printer_config);
+    fformData.append("extruder_config", this.extruder_config);
+    this.service.slice_service(fformData).subscribe(data => this.statusCode = data.data);
+  }
 
 
 

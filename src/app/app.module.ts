@@ -6,14 +6,18 @@ import { AppComponent } from './app.component';
 import { ApiInterceptor } from './api.interceptor';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-
+import { MatGridListModule } from '@angular/material/grid-list';
+import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import {MatGridTileHarness} from '@angular/material/grid-list/testing';
 @NgModule({
   declarations: [
     AppComponent
   ],
   imports: [
     BrowserModule,
-    AppRoutingModule, MatProgressBarModule
+    AppRoutingModule, MatProgressBarModule, MatGridListModule
 
   ],
   providers: [

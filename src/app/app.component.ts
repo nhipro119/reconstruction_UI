@@ -12,6 +12,7 @@ import { PrintingService } from './printing.service';
 import { FormBuilder, Validators } from '@angular/forms';
 import * as fileSaver from 'file-saver';
 import { WebGLPreview } from 'gcode-preview';
+import {MatGridListModule} from '@angular/material/grid-list';
 // import { FileSystemFileEntry, NgxFileDropEntry } from 'ngx-file-drop';
 @Component({
   selector: 'app-root',
@@ -46,8 +47,8 @@ export class AppComponent {
   split_file!:any;
   printer_config!:any;
   extruder_config!:any;
-  private context!: HTMLCanvasElement;
-  @ViewChild('myCanvas', { static: false }) canvas!: ElementRef;
+  current_link!:any;
+  curren_filename!:any;
   public loadObjFile() {
     var start = new Date().getTime();
     //create new file
@@ -64,12 +65,16 @@ export class AppComponent {
 
 
     var renderer = new THREE.WebGLRenderer();
-    renderer.setSize(900, 570);
-    document.body.appendChild(renderer.domElement);
+    // renderer.domElement.style.position = "initial";
+    renderer.domElement.style.top = "0px";
+    renderer.setSize(1500, 850);
+    document.getElementById("myObject")?.appendChild(renderer.domElement);
+    // document.body.appendChild(renderer.domElement);
     var can = document.querySelector('canvas');
-    can!.style.position = 'absolute';
-    can!.style.top = "95px";
-    can!.style.left = "37%";
+    can!.style.position = 'initial';
+    can!.style.top = "0px";
+    // can!.style.top = "95px";
+    // can!.style.left = "37%";
 
 
     var controls = new OrbitControls(camera, renderer.domElement);
@@ -122,12 +127,13 @@ export class AppComponent {
     var camera = new THREE.PerspectiveCamera(70, window.innerWidth / 2 / window.innerHeight / 0.5, 1, 1000);
     camera.position.z = 420;
     var renderer = new THREE.WebGLRenderer();
-    renderer.setSize(450, 450);
-    document.body.appendChild(renderer.domElement);
+    renderer.setSize(1500, 850);
+    document.getElementById("myObject")?.appendChild(renderer.domElement);
+    // document.body.appendChild(renderer.domElement);
     var can = document.querySelector('canvas');
-    can!.style.position = 'absolute';
-    can!.style.top = "100px";
-    can!.style.left = "20%";
+    can!.style.position = 'initial';
+    // can!.style.top = "100px";
+    // can!.style.left = "20%";
 
 
     var controls = new OrbitControls(camera, renderer.domElement);
@@ -176,7 +182,7 @@ export class AppComponent {
       let split_name = this.fileName.replace(".obj","_split.obj");
       this.split_file = new File([Response],split_name);
       this.file = this.split_file;
-      this.statusCode = split_name;
+      this.curren_filename = split_name;
     })
 
   }
@@ -197,10 +203,11 @@ export class AppComponent {
     this.reconstruct_link = data.reconstructed_face;
     this.split_link = data.split_wound;
     this.service.downloadFile(this.reconstruct_link).subscribe((response: any) => {
+      this.curren_filename = this.fileName.replace(".obj","_reconstruction.obj");
       // let blobf:Blob = new Blob([response],{type:"aplication/obj"})
-			this.reconstruct_file = new File([response],"abc.obj");
+			this.reconstruct_file = new File([response],this.curren_filename);
       this.file = this.reconstruct_file;
-      this.statusCode = this.file.name;
+
     }, (error: any) => console.log('Error downloading the file'),
     () => console.info('File downloaded successfully'));
 			// const url = window.URL.createObjectURL(blob);
@@ -216,6 +223,18 @@ export class AppComponent {
   config_file(e:any){
     this.printer_config = e.target.files[0];
   }
+  downloadfile()
+  {
+      this.service.downloadFile(this.current_link).subscribe((response: any)=>{
+
+      let blob:Blob = new Blob([response],{type:"application/obj"});
+      const url = window.URL.createObjectURL(blob);
+
+			fileSaver.saveAs(blob, this.curren_filename);
+			}), (error: any) => console.log('Error downloading the file'),
+			() => console.info('File downloaded successfully');
+
+  }
   get_config(){
     const input = document.getElementById('config');
     input?.addEventListener('click', function config_file(event) {
@@ -228,79 +247,7 @@ export class AppComponent {
     fformData.append("model", this.file);
     fformData.append("printer_config",this.printer_config);
     fformData.append("extruder_config", this.extruder_config);
-    this.service.slice_service(fformData).subscribe(data => this.setup_gcode_view(data.data));
-  }
-  setup_gcode_view(url:any){
-    this.context = (this.canvas.nativeElement as HTMLCanvasElement);
-
-    this.preview = new WebGLPreview({
-      canvas: this.context,
-      targetId: 'gcode-preview',
-      topLayerColor: new THREE.Color('lime').getHex(),
-      lastSegmentColor: new THREE.Color('red').getHex(),
-      buildVolume: { x: 450, y: 410, z: 350, r: 100, i: 100, j: 100 },
-      initialCameraPosition: [0, 400, 450]
-    });
-
-    this.preview.render();
-    this.statusCode = url;
-    this.dropped(url);
-  }
-  dropped(files: any): any {
-    for (const droppedFile of files) {
-      // if (droppedFile.fileEntry.isFile && droppedFile.relativePath !== undefined)
-      {
-        // const fileEntry = droppedFile.fileEntry as FileSystemFileEntry; // cast droppedFile to FileEntry
-        // fileEntry.file(async (file: File) =>
-        {
-          // const url = window.URL.createObjectURL(file); // createUrl To The FileEntry
-          const url = "http://34.101.50.122:8010/get-gcode?gcode_file=HUU_6318_6.gcode";
-          const linesList = this.fetchGcode(url); // get List Of Line of the current File
-          this.loadPreviewChunked(this.preview, linesList, 50); // Load Preview
-        };
-      }
-
-    }
-
-
-  }
-
-  async fetchGcode(url: any): Promise<any> {
-    const response = await fetch(url);
-
-    if (response.status !== 200) {
-      throw new Error(`status code: ${response.status}`);
-    }
-    const file = await response.text();
-    return file.split('\n');
-  }
-
-
-  loadPreviewChunked(target: any, lines: any, delay: any): any {
-    let c = 0;
-    const id = '__animationTimer__' + Math.random().toString(36).substring(2, 9);
-
-    console.log('id', id);
-    console.log(typeof id);
-    const loadProgressive = () => {
-      const start = c * this.chunkSize;
-      const end = (c + 1) * this.chunkSize;
-      const chunk = lines.slice(start, end);
-      target.processGCode(chunk);
-      c++;
-      if (c * this.chunkSize < lines.length) {
-        // window[id] = setTimeout(loadProgressive, delay);
-        setTimeout(loadProgressive, delay);
-      }
-      else {
-        console.log('this file was complete');
-      }
-    };
-
-
-    // window.clearTimeout(window[id]);
-    clearTimeout(setTimeout(loadProgressive, delay));
-    loadProgressive();
+    this.service.slice_service(fformData).subscribe(data => this.statusCode = data.data);
   }
 
 

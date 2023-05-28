@@ -1,54 +1,45 @@
-<h1>Printing Demo</h1>
-<div class="progress-bar" *ngIf="loaderService.isLoading | async">
-  <mat-progress-bar mode="determinate"></mat-progress-bar>
+
+<div class="head-div">
+  DEMO PRINTING
 </div>
-<button id="upload_btn" (click)="handleClick()" mat-raised-button class="btn">
-  <label for="file" class="lable-icon"> Upload</label>
-  <input
-    id="file"
-    class=""
-    type="file"
-    (change)="fileChanged($event)"
-    accept=".obj"
-    hidden
-  />
+<mat-grid-list cols="20"  rowHeight="2:1" [gutterSize]="'1em'">
+  <mat-grid-tile class="canvas-container "
+  colspan="15"
+  rowspan="18">
+  <div id="myObject" class="myObject center"></div>
+  </mat-grid-tile>
+  <mat-grid-tile
+  class="custom-printer-container white-bg"
+        colspan="5"
+        rowspan="18">
+    <div class="center">
+      <div class="setting-title">Control</div>
 
-</button>
-<br />
-<button id="reconstruction" (click)="reconstruction()" type="button">reconstruction</button>
-<br />
-<button id="split" (click)="split()" type="button">split wound</button>
-<!-- <button (click)="loadObjFileFromAPI()">Get Obj From API</button> -->
-<br />
-<button id="getconfig" (click)="get_config()" type="button">
-  <label for="config" class="lable-icon"> config</label>
-  <input
-    id="config"
-    class=""
-    type="file"
-    (change)="config_file($event)"
-    accept=".def.json"
-    hidden
-  />
-</button>
-<button id="slice" (click)="slice()" type="button">slice</button><br />
+        <button  class="btn load-btn" (click)="handleClick()" type="button" >
+          <label for="file" class="lable-icon"> Upload</label>
+          <input
+          id="file"
+          class=""
+          type="file"
+          (change)="fileChanged($event)"
+          accept=".obj"
+          hidden
+        />
+        </button>
 
-<button (click)="print()">Print</button>
-<h3>Status code {{ this.statusCode }}</h3>
 
-<div #myObject class="myObject"></div>
-<div id="gcode-preview">
-  <canvas #myCanvas></canvas>
-</div>
-<!-- <div>
-  <ngx-file-drop (onFileDrop)="dropped($event)">
-    <ng-template
-      ngx-file-drop-content-tmp
-      let-openFileSelector="openFileSelector"
-    >
-      <button type="button" class="btn btn-danger" (click)="openFileSelector()">
-        click me
-      </button>
-    </ng-template>
-  </ngx-file-drop>
-</div> -->
+        <button class="btn" (click)="reconstruction()"> reconstruction</button>
+        <button class="btn" (click)="split()">split</button>
+
+      <button class="btn" (click)="downloadfile()">save model</button>
+
+
+        <button mat-button color="primary" class="btn black-btn">
+          Print
+        </button>
+
+    </div>
+  </mat-grid-tile>
+</mat-grid-list>
+
+

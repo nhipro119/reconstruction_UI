@@ -4,11 +4,13 @@
     position: initial;
 
 }
-.progress{
-  position:absolute ;
-  margin: 1px;
-  margin-top: -859px;
-}
+// .progress{
+//   position:absolute ;
+//   margin: 1px;
+//   margin-top: -859px;
+// }
+
+
 .head-div{
   background-color: #c9d8c9;
   height: 50px;
@@ -154,3 +156,8 @@ background-color: #4CAF50;
   color: white !important;
 }
 
+.progress-bar{
+  width: 100%;
+  height:100%;
+
+}

@@ -1,14 +1,18 @@
 
 <div class="head-div">
   DEMO PRINTING
+
+</div>
+<div class="progress-bar" *ngIf="loaderService.isLoading | async">
+  <mat-progress-bar mode="indeterminate"></mat-progress-bar>
 </div>
 <mat-grid-list cols="20"  rowHeight="2:1" [gutterSize]="'1em'">
+
   <mat-grid-tile class="canvas-container "
   colspan="15"
   rowspan="18">
 
 
-  <div class="progress-bar" *ngIf="loaderService.isLoading | async"></div>
   <div id="myObject" class="myObject center"></div>
   </mat-grid-tile>
   <mat-grid-tile

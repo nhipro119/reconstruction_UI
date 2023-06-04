@@ -13,6 +13,7 @@ import { FormBuilder, Validators } from '@angular/forms';
 import * as fileSaver from 'file-saver';
 import { WebGLPreview } from 'gcode-preview';
 import {MatGridListModule} from '@angular/material/grid-list';
+import { time } from 'console';
 // import { FileSystemFileEntry, NgxFileDropEntry } from 'ngx-file-drop';
 @Component({
   selector: 'app-root',
@@ -49,6 +50,7 @@ export class AppComponent {
   extruder_config!:any;
   current_link!:any;
   curren_filename!:any;
+  percent:number = 0;
   public loadObjFile() {
     var start = new Date().getTime();
     //create new file
@@ -60,21 +62,23 @@ export class AppComponent {
     var mtlLoader = new MaterialLoader();
     var camera = new THREE.PerspectiveCamera(17, window.innerWidth / window.innerHeight, 1, 3000);
     camera.position.z = 1620;
-    camera.position.x = 100;
-    camera.position.y = 50;
+    camera.position.x = 1000;
+    camera.position.y = 500;
 
 
     var renderer = new THREE.WebGLRenderer();
     // renderer.domElement.style.position = "initial";
     renderer.domElement.style.top = "0px";
     renderer.setSize(1500, 850);
+    var div:any = document.getElementById('myObject');
+    while(div.firstChild){
+        div.removeChild(div.firstChild);
+    }
     document.getElementById("myObject")?.appendChild(renderer.domElement);
     // document.body.appendChild(renderer.domElement);
     var can = document.querySelector('canvas');
     can!.style.position = 'initial';
     can!.style.top = "0px";
-    // can!.style.top = "95px";
-    // can!.style.left = "37%";
 
 
     var controls = new OrbitControls(camera, renderer.domElement);
@@ -183,6 +187,7 @@ export class AppComponent {
       this.split_file = new File([Response],split_name);
       this.file = this.split_file;
       this.curren_filename = split_name;
+      this.current_link = this.split_link;
     })
 
   }
@@ -190,12 +195,12 @@ export class AppComponent {
     if(this.file){
       const formData = new FormData();
       formData.append("obj",this.file);
-      this.service.reconstruction(formData).subscribe(data => this.getresult(data))
+      this.service.reconstruction(formData).subscribe(data => this.getresult(data));
+
+
 
     }
-    else{
-      this.statusCode = 10;
-    }
+
 }
 
   getresult(data: any)
@@ -207,6 +212,7 @@ export class AppComponent {
       // let blobf:Blob = new Blob([response],{type:"aplication/obj"})
 			this.reconstruct_file = new File([response],this.curren_filename);
       this.file = this.reconstruct_file;
+      this.current_link = this.reconstruct_link;
 
     }, (error: any) => console.log('Error downloading the file'),
     () => console.info('File downloaded successfully'));
@@ -227,9 +233,9 @@ export class AppComponent {
   {
       this.service.downloadFile(this.current_link).subscribe((response: any)=>{
 
-      let blob:Blob = new Blob([response],{type:"application/obj"});
+      let blob:Blob = new Blob([response],{type:"text/obj"});
       const url = window.URL.createObjectURL(blob);
-
+      // window.open(url);
 			fileSaver.saveAs(blob, this.curren_filename);
 			}), (error: any) => console.log('Error downloading the file'),
 			() => console.info('File downloaded successfully');

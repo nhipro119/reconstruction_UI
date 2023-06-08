@@ -2,7 +2,7 @@ import { LoaderService } from './loader.service';
 
 
 import { HttpClient } from '@angular/common/http';
-import { Component,ElementRef, ViewChild } from '@angular/core';
+import { Component,ElementRef, ViewChild, Input } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
@@ -14,6 +14,7 @@ import * as fileSaver from 'file-saver';
 import { WebGLPreview } from 'gcode-preview';
 import {MatGridListModule} from '@angular/material/grid-list';
 import { time } from 'console';
+import { Subject } from 'rxjs';
 // import { FileSystemFileEntry, NgxFileDropEntry } from 'ngx-file-drop';
 @Component({
   selector: 'app-root',
@@ -51,6 +52,23 @@ export class AppComponent {
   current_link!:any;
   curren_filename!:any;
   percent:number = 0;
+  url_uploadfile:any = "none";
+  id_gcode!:any;
+  url_gcode!:any;
+  isIntended:boolean = false;
+  file_gcode: any;
+  success_printing:boolean = false;
+  gcode_file: any;
+
+  private context!: HTMLCanvasElement;
+  @Input() link = ''; // decorate the property with @Input()
+
+  @ViewChild('myCanvas', { static: false }) canvas!: ElementRef;
+
+
+
+
+
   public loadObjFile() {
     var start = new Date().getTime();
     //create new file
@@ -173,11 +191,13 @@ export class AppComponent {
     this.file = e.target.files[0];
     this.fileName = this.file.name;
     this.localUrl = e.target.value;
-
     this.loadObjFile();
   }
   print() {
-    this.service.print().subscribe(data => this.statusCode = data.code)
+    this.service.print().subscribe(data => this.message())
+  }
+  message(){
+    this.success_printing = true;
   }
   split(){
     this.loadObjFileFromAPI(this.split_link);
@@ -247,14 +267,31 @@ export class AppComponent {
 
     });
   }
-  slice()
+  upload()
   {
     let fformData: FormData = new FormData();
-    fformData.append("model", this.file);
-    fformData.append("printer_config",this.printer_config);
-    fformData.append("extruder_config", this.extruder_config);
-    this.service.slice_service(fformData).subscribe(data => this.statusCode = data.data);
+    fformData.append("uploads", this.file);
+    fformData.append("projectId","ae40c722-e595-11ed-865a-42010ab80002");
+    fformData.append("folderId", "6f2abba6-e743-11ed-96d1-42010ab80002");
+    this.service.upload(fformData).subscribe(data => this.slice(data));
   }
+  slice(data:any){
+    let formslice:FormData = new FormData();
 
+    this.url_uploadfile = data.data[0].url;
+    formslice.append("model",this.url_uploadfile);
+    formslice.append("quality","normal");
+    formslice.append("filament","PLA");
+    formslice.append("folderId","6f2abba6-e743-11ed-96d1-42010ab80002");
+    formslice.append("projectId","ae40c722-e595-11ed-865a-42010ab80002");
+    this.service.slice_service(formslice).subscribe(data => {
+      this.id_gcode = data.id;
+      this.url_gcode = data.data;
+      console.log(this.id_gcode);
+
+    },
+    err=>{},
+    ()=>this.isIntended=!this.isIntended)
+  }
 
 }

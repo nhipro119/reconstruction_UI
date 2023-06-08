@@ -9,7 +9,7 @@ export interface ResponseBody {
 }
 const REQ_DATA = {
   "printerId": "00-1B-63-84-45-E6",
-  "fileId": "a610f34a-ef0b-11ed-9e26-42010ab80002",
+  "fileId": "baa96dec-0548-11ee-b473-0242ac180002",
   "status": "PENDING"
 }
 @Injectable({
@@ -38,6 +38,10 @@ export class PrintingService {
   }
   slice_service(formData:FormData): Observable<any>
   {
-    return this.http.post<any>("http://34.101.50.122:8010/slice-gcode",formData)
+    return this.http.post<any>("http://34.101.50.122:8011/slice-gcode",formData)
+  }
+  upload(formData:any):Observable<any>
+  {
+    return this.http.post<any>("http://34.101.50.122:3002/api/files/upload",formData);
   }
 }

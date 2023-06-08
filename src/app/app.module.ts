@@ -7,13 +7,15 @@ import { ApiInterceptor } from './api.interceptor';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatGridListModule } from '@angular/material/grid-list';
+import { GcodePreviewComponent } from './gcode-preview/gcode-preview.component';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import {MatGridTileHarness} from '@angular/material/grid-list/testing';
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    GcodePreviewComponent
   ],
   imports: [
     BrowserModule,

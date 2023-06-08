@@ -3,17 +3,28 @@
   DEMO PRINTING
 
 </div>
-<div class="progress-bar" *ngIf="loaderService.isLoading | async">
-  <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-</div>
-<mat-grid-list cols="20"  rowHeight="2:1" [gutterSize]="'1em'">
 
+<mat-grid-list cols="20"  rowHeight="2:1" [gutterSize]="'1em'">
+  <div class="progress-bar" *ngIf="loaderService.isLoading | async">
+    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+  </div>
   <mat-grid-tile class="canvas-container "
   colspan="15"
-  rowspan="18">
+  rowspan="18"
+  *ngIf="!isIntended">
 
 
   <div id="myObject" class="myObject center"></div>
+  </mat-grid-tile>
+  <mat-grid-tile class="canvas-container "
+  colspan="15"
+  rowspan="18"
+  *ngIf="isIntended">
+
+
+  <app-gcode-preview [link]="url_gcode"></app-gcode-preview
+    >
+
   </mat-grid-tile>
   <mat-grid-tile
   class="custom-printer-container white-bg"
@@ -36,14 +47,17 @@
 
 
         <button class="btn" (click)="reconstruction()"> reconstruction</button>
+
         <button class="btn" (click)="split()">split</button>
 
       <button class="btn" (click)="downloadfile()">save model</button>
 
+      <button class="btn" (click)="upload()">slice</button>
 
         <button mat-button color="primary" class="btn black-btn" (click)="print()">
           Print
         </button>
+        <div *ngIf="success_printing" class="message_div btn">SUCCESS!!!the printing proccess will be executed</div>
 
     </div>
   </mat-grid-tile>
